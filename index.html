@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frankie Radio</title>
+	<link rel="icon" href="data:,">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0b0d15;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(60, 80, 200, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 50%, rgba(200, 60, 200, 0.1) 0%, transparent 50%);
+            z-index: -2;
+            animation: pulseBg 8s ease-in-out infinite alternate;
+        }
+        @keyframes pulseBg {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(1.2); opacity: 1; }
+        }
+        .radio-container {
+            width: 100%;
+            max-width: 520px;
+            padding: 30px 25px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            position: relative;
+            margin: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(255,255,255,0.06);
+            padding: 6px 14px;
+            border-radius: 30px;
+            text-transform: uppercase;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: livePulse 1.5s ease-in-out infinite;
+        }
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.8); }
+        }
+        .status-dot.off { background: #64748b; animation: none; }
+        .player-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 20px 0;
+            border-radius: 30px;
+        }
+        .player-zone:active { background: rgba(255,255,255,0.03); }
+        .artwork {
+            width: 200px;
+            height: 200px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #4c1d95, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transition: all 0.4s ease;
+            background-size: cover;
+            background-position: center;
+        }
+        .artwork .play-icon {
+            font-size: 4rem;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 0 30px rgba(0,0,0,0.6);
+            transition: transform 0.2s;
+        }
+        .artwork .play-icon.paused { transform: scale(0.9); }
+        .track-info { margin-top: 20px; text-align: center; width: 100%; }
+        .track-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        .track-artist {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.6);
+            margin-top: 4px;
+            font-weight: 400;
+        }
+        .volume-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 18px;
+            padding: 0 10px;
+        }
+        .volume-row span { font-size: 1.2rem; opacity: 0.7; cursor: pointer; }
+        input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 4px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.15);
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #a78bfa;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.4);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #a78bfa;
+            cursor: pointer;
+            border: none;
+        }
+        .bottom-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .history-btn, .request-btn {
+            background: rgba(255,255,255,0.06);
+            border: none;
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .history-btn:hover, .request-btn:hover { background: rgba(255,255,255,0.12); }
+        .history-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, opacity 0.3s ease;
+            opacity: 0;
+            margin-top: 10px;
+        }
+        .history-panel.open {
+            max-height: 300px;
+            opacity: 1;
+            overflow-y: auto;
+        }
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+        .history-item .mini-art {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #4c1d95, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        .history-item .h-title { font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .history-item .h-artist { color: rgba(255,255,255,0.5); font-size: 0.8rem; }
+        
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: #1e1b2e; border-radius: 30px; padding: 35px 30px;
+            max-width: 400px; width: 90%; border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.8);
+        }
+        .modal-box h2 { font-size: 1.4rem; margin-bottom: 20px; text-align: center; }
+        .modal-box input {
+            width: 100%; padding: 14px 16px; margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+            background: rgba(255,255,255,0.05); color: #fff; font-size: 1rem; outline: none;
+        }
+        .modal-box input:focus { border-color: #a78bfa; }
+        .modal-box .btn-row { display: flex; gap: 10px; margin-top: 10px; }
+        .modal-box button { flex: 1; padding: 12px; border: none; border-radius: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: #a78bfa; color: #fff; }
+        .btn-primary:hover { background: #8b6cf5; }
+        .btn-secondary { background: rgba(255,255,255,0.06); color: #fff; }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+        @media (max-width: 500px) {
+            .radio-container { padding: 20px 16px; }
+            .artwork { width: 150px; height: 150px; font-size: 3.5rem; }
+            .track-title { font-size: 1.3rem; }
+            .track-artist { font-size: 1rem; }
+            .bottom-row { flex-direction: column; gap: 12px; }
+            .history-btn, .request-btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="radio-container">
+        <div class="header">
+            <div class="logo">🎧 Frankie Radio</div>
+            <div class="status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Cargando...</span>
+            </div>
+        </div>
+
+        <div class="player-zone" id="playerZone">
+            <div class="artwork" id="artwork">
+                <span class="play-icon" id="playIcon">▶</span>
+            </div>
+            <div class="track-info">
+                <div class="track-title" id="trackTitle">Conectando...</div>
+                <div class="track-artist" id="trackArtist">Estación de radio</div>
+            </div>
+        </div>
+
+        <div class="volume-row">
+            <span id="muteBtn">🔊</span>
+            <input type="range" id="volumeSlider" min="0" max="100" value="70">
+        </div>
+
+        <div class="bottom-row">
+            <button class="history-btn" id="historyToggle">📜 Historial</button>
+			<button class="request-btn" id="waveToggleBtn">🌊 Espectrómetro</button>
+            <button class="request-btn" id="requestBtn">📨 Pedido musical</button>
+        </div>
+
+        <div class="history-panel" id="historyPanel">
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <h2>🎤 Pedido musical</h2>
+            <input type="text" id="requestName" placeholder="Tu nombre (opcional)">
+            <input type="text" id="requestSong" placeholder="Artista - Canción (*)">
+            <div class="btn-row">
+                <button class="btn-secondary" id="modalCancel">Cancelar</button>
+                <button class="btn-primary" id="modalSend">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audioPlayer" preload="none" crossorigin="anonymous"></audio>
+
+	<script>
+		// =============================================
+		// CONFIGURACIÓN
+		// =============================================
+		const STREAM_URL = 'http://104.237.151.158:8012/stream?type=http&nocache=953';
+		const PROXY_URL = '/api/metadata';
+		const LASTFM_API_KEY = 'fbfb5e4d823c7b451da4f7b0de1f93ff'; // Tu API Key
+
+		// =============================================
+		// ELEMENTOS DOM
+		// =============================================
+		const audio = document.getElementById('audioPlayer');
+		const playerZone = document.getElementById('playerZone');
+		const playIcon = document.getElementById('playIcon');
+		const artwork = document.getElementById('artwork');
+		const trackTitle = document.getElementById('trackTitle');
+		const trackArtist = document.getElementById('trackArtist');
+		const statusDot = document.getElementById('statusDot');
+		const statusText = document.getElementById('statusText');
+		const volumeSlider = document.getElementById('volumeSlider');
+		const muteBtn = document.getElementById('muteBtn');
+		const historyToggle = document.getElementById('historyToggle');
+		const historyPanel = document.getElementById('historyPanel');
+		const historyList = document.getElementById('historyList');
+		const requestBtn = document.getElementById('requestBtn');
+		const modalOverlay = document.getElementById('modalOverlay');
+		const modalCancel = document.getElementById('modalCancel');
+		const modalSend = document.getElementById('modalSend');
+		const requestName = document.getElementById('requestName');
+		const requestSong = document.getElementById('requestSong');
+		// 🆕 Elementos del visualizador
+		const waveToggleBtn = document.getElementById('waveToggleBtn');
+		// Crearemos el canvas dinámicamente en el JS
+
+		let isPlaying = false;
+		let currentTitle = '';
+		let currentArtist = '';
+		let history = [];
+		let metadataInterval = null;
+		let lastFullTitle = '';
+		let metadataLoaded = false;
+
+		// 🆕 Variables para persistencia de volumen
+		let previousVolume = 70;
+		let isMuted = false;
+
+		// 🆕 Variables para el visualizador
+		let audioContext = null;
+		let analyser = null;
+		let dataArray = null;
+		let isVisualizerActive = false;
+		let animationFrameId = null;
+		let canvas = null;
+		let ctx = null;
+
+		// =============================================
+		// INICIALIZAR Y PERSISTENCIA DE VOLUMEN
+		// =============================================
+		audio.src = STREAM_URL;
+		audio.crossOrigin = 'anonymous';
+
+		// Cargar volumen guardado
+		const savedVolume = localStorage.getItem('frankieRadioVolume');
+		const savedMuteState = localStorage.getItem('frankieRadioMute');
+		
+		if (savedVolume !== null) {
+			audio.volume = parseInt(savedVolume) / 100;
+			volumeSlider.value = savedVolume;
+			previousVolume = parseInt(savedVolume);
+		} else {
+			audio.volume = 0.7;
+			volumeSlider.value = 70;
+		}
+
+		if (savedMuteState === 'true') {
+			audio.volume = 0;
+			volumeSlider.value = 0;
+			muteBtn.textContent = '🔇';
+			isMuted = true;
+		}
+
+		// =============================================
+		// FUNCIÓN: OBTENER CARÁTULA (LAST.FM)
+		// =============================================
+		async function fetchArtwork(artist, title) {
+			if (!LASTFM_API_KEY) return;
+
+			// Si el visualizador está activo, no cambiamos el fondo para no estorbar
+			if (isVisualizerActive) return;
+
+			try {
+				const url = `https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&track=${encodeURIComponent(title)}&format=json`;
+				const res = await fetch(url);
+				const data = await res.json();
+
+				if (data.track && data.track.album && data.track.album.image) {
+					const images = data.track.album.image;
+					const largeImage = images.find(img => img.size === 'extralarge') || images[images.length - 1];
+					if (largeImage && largeImage['#text']) {
+						artwork.style.backgroundImage = `url('${largeImage['#text']}')`;
+						artwork.style.backgroundSize = 'cover';
+						artwork.style.backgroundPosition = 'center';
+						playIcon.style.opacity = '0.5';
+						return;
+					}
+				}
+				// Default sin imagen
+				artwork.style.backgroundImage = `linear-gradient(135deg, #4c1d95, #7c3aed)`;
+				playIcon.style.opacity = '1';
+			} catch (err) {
+				artwork.style.backgroundImage = `linear-gradient(135deg, #4c1d95, #7c3aed)`;
+				playIcon.style.opacity = '1';
+			}
+		}
+
+		// =============================================
+		// VISUALIZADOR DE ONDAS (Web Audio API)
+		// =============================================
+		function initVisualizer() {
+			if (!canvas) {
+				canvas = document.createElement('canvas');
+				canvas.width = 200;
+				canvas.height = 200;
+				canvas.style.position = 'absolute';
+				canvas.style.borderRadius = '30px';
+				canvas.style.top = '0';
+				canvas.style.left = '0';
+				canvas.style.width = '100%';
+				canvas.style.height = '100%';
+				canvas.style.display = 'none';
+				artwork.style.position = 'relative';
+				artwork.appendChild(canvas);
+				ctx = canvas.getContext('2d');
+			}
+
+			if (!audioContext) {
+				audioContext = new (window.AudioContext || window.webkitAudioContext)();
+				analyser = audioContext.createAnalyser();
+				analyser.fftSize = 64;
+				const source = audioContext.createMediaElementSource(audio);
+				source.connect(analyser);
+				analyser.connect(audioContext.destination);
+				dataArray = new Uint8Array(analyser.frequencyBinCount);
+			}
+
+			canvas.style.display = 'block';
+			isVisualizerActive = true;
+			waveToggleBtn.textContent = '⏹️ Sin Espectro';
+			
+			// Ocultamos el fondo de la carátula para ver el canvas
+			artwork.style.backgroundImage = 'none';
+			playIcon.style.opacity = '1';
+
+			drawVisualizer();
+		}
+
+		function drawVisualizer() {
+			if (!isVisualizerActive) return;
+			if (!canvas || !ctx) return;
+
+			const width = canvas.width;
+			const height = canvas.height;
+			ctx.clearRect(0, 0, width, height);
+
+			analyser.getByteFrequencyData(dataArray);
+
+			const barCount = dataArray.length / 2;
+			const barWidth = (width / barCount) * 0.8;
+			let barHeight;
+			let x = 0;
+
+			for (let i = 0; i < barCount; i++) {
+				barHeight = (dataArray[i] / 255) * height;
+				// Colores morados/violetas para que combine con tu diseño
+				const r = 167 + (dataArray[i] / 255) * 50;
+				const g = 139 + (dataArray[i] / 255) * 50;
+				const b = 250;
+				ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+				ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+				x += barWidth + 2;
+			}
+
+			animationFrameId = requestAnimationFrame(drawVisualizer);
+		}
+
+		function stopVisualizer() {
+			isVisualizerActive = false;
+			if (animationFrameId) cancelAnimationFrame(animationFrameId);
+			if (canvas) canvas.style.display = 'none';
+			waveToggleBtn.textContent = '🌊 Espectrómetro';
+			
+			// Restaurar la carátula actual (si existe)
+			if (currentTitle && currentArtist) fetchArtwork(currentArtist, currentTitle);
+			else {
+				artwork.style.backgroundImage = `linear-gradient(135deg, #4c1d95, #7c3aed)`;
+				playIcon.style.opacity = '1';
+			}
+		}
+
+		waveToggleBtn.addEventListener('click', () => {
+			if (isVisualizerActive) {
+				stopVisualizer();
+			} else {
+				// Desbloquear contexto (requisito de Chrome)
+				if (audioContext && audioContext.state === 'suspended') {
+					audioContext.resume();
+				}
+				initVisualizer();
+			}
+		});
+
+		// =============================================
+		// PLAY / PAUSE
+		// =============================================
+		function togglePlay() {
+			if (isPlaying) {
+				audio.pause();
+				playIcon.textContent = '▶';
+				playIcon.classList.add('paused');
+				statusDot.classList.add('off');
+				statusText.textContent = 'Pausado';
+				isPlaying = false;
+			} else {
+				audio.play().then(() => {
+					playIcon.textContent = '⏸';
+					playIcon.classList.remove('paused');
+					statusDot.classList.remove('off');
+					statusText.textContent = 'Streaming';
+					isPlaying = true;
+					if (!metadataLoaded) fetchMetadata();
+				}).catch(err => {
+					console.error('Error al reproducir:', err);
+					statusText.textContent = 'Haz clic para intentar';
+				});
+			}
+		}
+		playerZone.addEventListener('click', togglePlay);
+
+		// =============================================
+		// VOLUMEN (Con memoria y Mute)
+		// =============================================
+		volumeSlider.addEventListener('input', () => {
+			const val = parseInt(volumeSlider.value);
+			audio.volume = val / 100;
+			
+			if (val === 0) {
+				muteBtn.textContent = '🔇';
+				isMuted = true;
+			} else {
+				muteBtn.textContent = val < 50 ? '🔈' : '🔊';
+				isMuted = false;
+				previousVolume = val;
+			}
+			localStorage.setItem('frankieRadioVolume', val);
+			localStorage.setItem('frankieRadioMute', isMuted);
+		});
+
+		muteBtn.addEventListener('click', () => {
+			if (audio.volume > 0) {
+				previousVolume = parseInt(volumeSlider.value);
+				audio.volume = 0;
+				volumeSlider.value = 0;
+				muteBtn.textContent = '🔇';
+				isMuted = true;
+			} else {
+				audio.volume = previousVolume / 100;
+				volumeSlider.value = previousVolume;
+				muteBtn.textContent = previousVolume < 50 ? '🔈' : '🔊';
+				isMuted = false;
+			}
+			localStorage.setItem('frankieRadioVolume', volumeSlider.value);
+			localStorage.setItem('frankieRadioMute', isMuted);
+		});
+
+		// =============================================
+		// METADATOS
+		// =============================================
+		async function fetchMetadata() {
+			try {
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), 5000);
+				const res = await fetch(PROXY_URL, { signal: controller.signal });
+				clearTimeout(timeoutId);
+				if (!res.ok) throw new Error('HTTP error ' + res.status);
+				const data = await res.json();
+				if (!data.full) return;
+
+				if (data.full !== lastFullTitle || !metadataLoaded) {
+					lastFullTitle = data.full;
+					currentTitle = data.title || 'Música';
+					currentArtist = data.artist || 'Ininterrumpida';
+
+					trackTitle.textContent = currentTitle;
+					trackArtist.textContent = currentArtist;
+					metadataLoaded = true;
+
+					// Solo buscar carátula si el visualizador NO está activo
+					if (!isVisualizerActive) fetchArtwork(currentArtist, currentTitle);
+
+					addHistory(currentTitle, currentArtist);
+				}
+			} catch (err) {
+				if (!metadataLoaded) {
+					trackTitle.textContent = 'Esperando señal...';
+					trackArtist.textContent = 'Reintentando conectar';
+					statusText.textContent = 'Conectando...';
+				}
+			}
+		}
+
+		// =============================================
+		// ATALOS DE TECLADO (Nueva funcionalidad)
+		// =============================================
+		document.addEventListener('keydown', (e) => {
+			// Si el usuario está escribiendo en el modal de pedidos, ignoramos
+			if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+
+			switch (e.code) {
+				case 'Space':
+					e.preventDefault(); // Evita hacer scroll hacia abajo
+					togglePlay();
+					break;
+				case 'ArrowUp':
+					e.preventDefault();
+					let newValUp = Math.min(100, parseInt(volumeSlider.value) + 5);
+					volumeSlider.value = newValUp;
+					audio.volume = newValUp / 100;
+					// Actualizar icono y guardar
+					if (newValUp === 0) muteBtn.textContent = '🔇';
+					else muteBtn.textContent = newValUp < 50 ? '🔈' : '🔊';
+					localStorage.setItem('frankieRadioVolume', newValUp);
+					break;
+				case 'ArrowDown':
+					e.preventDefault();
+					let newValDown = Math.max(0, parseInt(volumeSlider.value) - 5);
+					volumeSlider.value = newValDown;
+					audio.volume = newValDown / 100;
+					if (newValDown === 0) muteBtn.textContent = '🔇';
+					else muteBtn.textContent = newValDown < 50 ? '🔈' : '🔊';
+					localStorage.setItem('frankieRadioVolume', newValDown);
+					break;
+				case 'KeyM':
+					muteBtn.click();
+					break;
+			}
+		});
+
+		// Pequeña guía en la consola
+		console.log('🎹 Atajos: [Espacio] Play/Pausa | [↑] Subir Vol | [↓] Bajar Vol | [M] Mute');
+
+		// =============================================
+		// HISTORIAL
+		// =============================================
+		function addHistory(title, artist) {
+			if (!title || title === 'Música ininterrumpida' || title === 'Esperando señal...') return;
+			if (history.length > 0 && history[0].title === title) return;
+			history.unshift({ title, artist });
+			if (history.length > 10) history.pop();
+			renderHistory();
+		}
+		function renderHistory() {
+			if (history.length === 0) {
+				historyList.innerHTML = '<div style="padding:10px; opacity:0.5; text-align:center;">Aún no hay historial</div>';
+				return;
+			}
+			historyList.innerHTML = history.map(item => `
+				<div class="history-item">
+					<div class="mini-art">🎵</div>
+					<div class="h-title">${item.title}</div>
+					<div class="h-artist">${item.artist}</div>
+				</div>
+			`).join('');
+		}
+		historyToggle.addEventListener('click', () => historyPanel.classList.toggle('open'));
+
+		// =============================================
+		// MODAL DE PEDIDO
+		// =============================================
+		requestBtn.addEventListener('click', () => modalOverlay.classList.add('active'));
+		modalCancel.addEventListener('click', () => modalOverlay.classList.remove('active'));
+		modalOverlay.addEventListener('click', (e) => {
+			if (e.target === modalOverlay) modalOverlay.classList.remove('active');
+		});
+		modalSend.addEventListener('click', async () => {
+			const name = requestName.value.trim() || 'Anónimo';
+			const song = requestSong.value.trim();
+			if (!song) {
+				alert('Por favor, escribe el nombre de la canción.');
+				return;
+			}
+
+			// 🆕 Enviar al servidor (en lugar del alert simple)
+			try {
+				const res = await fetch('/api/request', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ name, song })
+				});
+				
+				const data = await res.json();
+				if (data.success) {
+					alert(`✅ ¡Gracias ${name}! Hemos recibido tu pedido: "${song}" y ya está en la lista del DJ.`);
+				} else {
+					alert('❌ Ocurrió un error al enviar el pedido. Inténtalo de nuevo.');
+				}
+			} catch (err) {
+				console.error(err);
+				alert('❌ Error de conexión. Inténtalo más tarde.');
+			}
+
+			requestName.value = '';
+			requestSong.value = '';
+			modalOverlay.classList.remove('active');
+		});
+		// =============================================
+		// INICIO
+		// =============================================
+		metadataInterval = setInterval(fetchMetadata, 3000);
+		fetchMetadata();
+
+		audio.addEventListener('play', () => {
+			isPlaying = true;
+			playIcon.textContent = '⏸';
+			playIcon.classList.remove('paused');
+			statusDot.classList.remove('off');
+			statusText.textContent = 'Streaming';
+		});
+		audio.addEventListener('error', (e) => {
+			statusText.textContent = 'Sin señal';
+			statusDot.classList.add('off');
+			playIcon.textContent = '⟳';
+		});
+
+		console.log('🎧 Frankie Radio lista! Haz clic en el centro para escuchar.');
+	</script>
+</body>
+</html>
