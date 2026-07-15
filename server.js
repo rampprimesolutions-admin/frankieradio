@@ -2,7 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const SERVER_IP = '104.237.151.158';
 const SERVER_PORT = '8012';
 const SID = '1';
