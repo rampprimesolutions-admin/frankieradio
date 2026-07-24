@@ -4,17 +4,24 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
-const SERVER_IP = '104.237.151.158';
-const SERVER_PORT = '8012';
+// DATOS PARA CONECTAR A SHOUTCAST (FRANKIE RADIO: CANAL 1 - BALADAS EN ESPAÑOL)
+// const SERVER_IP = '104.237.151.158';
+// const SERVER_PORT = '8012';
+
+// DATOS PARA CONECTAR A LAPTOP (RICKY SERVER: SWYH)
+const SERVER_IP = '100.103.128.75';
+const SERVER_PORT = '5901';
 const SID = '1';
 
 // Configuración de Telegram
 const TELEGRAM_BOT_TOKEN = '8756077868:AAFgELBxxXbkaAiL31JI1l-C5-qjLXbZaO0'; // Asegúrate de que esté tu token
 const TELEGRAM_CHAT_ID = '7321748802'; // Asegúrate de que esté tu chat ID
 
-const CURRENT_SONG_URL = `http://${SERVER_IP}:${SERVER_PORT}/currentsong?sid=${SID}`;
-const STATS_URL = `http://${SERVER_IP}:${SERVER_PORT}/stats?sid=${SID}`;
-const STREAM_URL = `http://${SERVER_IP}:${SERVER_PORT}/stream`; // URL del audio
+// const CURRENT_SONG_URL = `http://${SERVER_IP}:${SERVER_PORT}/currentsong?sid=${SID}`;
+const CURRENT_SONG_URL = `http://${SERVER_IP}:${SERVER_PORT}/currentsong`;
+//const STATS_URL = `http://${SERVER_IP}:${SERVER_PORT}/stats?sid=${SID}`;
+const STATS_URL = `http://${SERVER_IP}:${SERVER_PORT}/stats`;
+const STREAM_URL = `http://${SERVER_IP}:${SERVER_PORT}/stream/swyh.mp3`; // URL del audio
 
 let currentMetadata = { title: 'Música ininterrumpida', artist: 'Desconocido', full: 'Cargando...' };
 
@@ -118,7 +125,7 @@ const server = http.createServer((req, res) => {
     const method = req.method;
 
     // 🆕 PROXY DE AUDIO: Cuando el navegador pida /stream, reenviamos a la IP real
-    if (pathname === '/stream') {
+    if (pathname === '/stream/swyh.mp3') {
         console.log('🎧 Cliente solicitando audio...');
         // Hacemos la petición al servidor de USA
         const proxyReq = http.get(STREAM_URL, (proxyRes) => {
